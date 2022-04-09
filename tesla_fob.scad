@@ -47,8 +47,10 @@ function to2D(xy)=[
  zoomf = 1+2/basislaenge;
  zooms = 1+1.3/basislaenge;
 
- translate([50,0,0]){tesla_case_bottom(bht=schnitte, wd=2); translate([0,2,0]) %tesla_keyfob(bht=schnitte); }
- tesla_case_top(bht=schnitte, wd=2);
+//tesla_stringkeyfob(bht=schnitte);
+translate([50,0,0]){tesla_case_bottom(bht=schnitte, wd=2) {tesla_stringkeyfob(bht=schnitte);}; translate([0,2,0]) %tesla_keyfob(bht=schnitte); }
+//translate([50,0,0]){tesla_case_bottom(bht=schnitte, wd=2); translate([0,2,0]) %tesla_keyfob(bht=schnitte); }
+tesla_case_top(bht=schnitte, wd=2){tesla_stringkeyfob(bht=schnitte);};
  //Test zusammengesetzt und aufgeschnitten
 //    difference()
 //  {
@@ -73,16 +75,19 @@ module tesla_case_bottom(bht, wd=1)
 	intersection()
 	{
 	  scale(zoomif)tesla_keyfob(bht);
+	  //scale(zoomif)children();
 	  color("blue")translate([0,6,0])cube([40,10,1.5*basislaenge], center = true);
 	}
       translate([0,-1.5,0])
 	intersection()
 	{
-	  scale(zoomaf)tesla_keyfob(bht);
+	  //scale(zoomaf)tesla_keyfob(bht);
+	  scale(zoomaf)children();
 	  color("blue")translate([0,4,0])cube([40,5,1.5*basislaenge], center = true);
 	}
     }
     translate([0,wd,0])tesla_keyfob(bht);
+    //translate([0,wd,0])children();
   }
 }
 
@@ -91,26 +96,28 @@ module tesla_case_top(bht, wd=1)
   zoomif = 1+2*wd/basislaenge;
   zoomaf = 1+4*wd/basislaenge;
   translate([0,-5,0])
-  difference()
-  {
-    translate([0,wd,0])scale(zoomaf)tesla_keyfob(bht);
-    union()
+    difference()
     {
-	  cube([40,10,1.5*basislaenge], center = true);
-      translate([0,wd,0])tesla_keyfob(bht);
-      scale([1.01,1.0,1.01])tesla_case_bottom(bht=bht, wd=wd);
-color("blue")
-      scale([0.97,1.0,0.97])tesla_case_bottom(bht=bht, wd=wd);
-  translate([0,-28,basislaenge/2-15])
-  rotate([20,0,0])
-  translate([0,40,0])
-  rotate([-90,0,0])
-scale(.1)
-color("red")
-  linear_extrude(height=20, center=true)
-  tesla_logo();
+      //translate([0,wd,0])scale(zoomaf)tesla_keyfob(bht);
+      translate([0,wd,0])scale(zoomaf)children();
+      union()
+      {
+	cube([40,10,1.5*basislaenge], center = true);
+	translate([0,wd,0])tesla_keyfob(bht);
+	//translate([0,wd,0])children();
+	scale([1.01,1.0,1.01])tesla_case_bottom(bht=bht, wd=wd);
+	color("blue")
+	  scale([0.97,1.0,0.97])tesla_case_bottom(bht=bht, wd=wd);
+	translate([0,-28,basislaenge/2-15])
+	  rotate([20,0,0])
+	  translate([0,40,0])
+	  rotate([-90,0,0])
+	  scale(.1)
+	  color("red")
+	  linear_extrude(height=20, center=true)
+	  tesla_logo();
+      }
     }
-  }
 }
 module tesla_keyfob(bht)
 {
@@ -163,4 +170,34 @@ module tesla_keyfob(bht)
       }
     }
   }
+}
+
+module tesla_stringkeyfob(bht, sw = 6,sh = 3,wd = 2)
+{
+  tesla_keyfob(bht);
+  halb = sw/2+wd;
+  //punkte = [[sw/2+wd,0], each(xaufrunden(toround = [sw/2+wd,sh+wd], r=3, fn=6, sw=0, ew=90)),[wd,0]];
+  points = xaufrunden(toround = [sw/2+wd,sh+wd], r=3, fn=6, sw=0, ew=90) ;
+  punkte = [
+    [0,sh+wd],
+    for(point = xaufrunden(toround = [sw/2+wd,sh+wd], r=3, fn=6, sw=0, ew=90))[point[0]-halb-wd, point[1]],
+    [-halb,0],
+    [halb,0],
+    for( i=[len(points)-1:-1:0])[-points[i][0]+halb+wd, points[i][1]],
+    ];
+
+
+    //for(einpunkt = punkte){color("magenta")translate([einpunkt[0],basis[0][1]/2+.2+einpunkt[1],basis[0][2]-sh*2]) cube([1,1,1], center = true);}
+    difference()
+    {
+color("magenta")
+      translate([0,.2,basis[0][2]+.2]) rotate([-90,0,0])linear_extrude(height=basis[0][1])polygon(punkte);
+      color("green")translate([0,basis[0][1]/2,basis[0][2]-sh/2+.2]) cube([sw,2*basis[0][1],sh], center = true);
+    }
+
+    difference()
+    {
+      translate([0,basis[1][1]+.2,basis[1][2]-.2]) rotate([90,0,0])linear_extrude(height=basis[1][1])polygon(punkte);
+      color("green")translate([0,basis[1][1]/2,basis[1][2]+sh/2]) cube([sw,2*basis[1][1],sh], center = true);
+    }
 }
